@@ -1,0 +1,121 @@
+# გამარჯობა
+
+import argparse
+import math
+
+parser = argparse.ArgumentParser(description="This program calculates \
+                    loan, with annual or differential payment methods")
+
+parser.add_argument('-t', '--type', type=str, choices=["diff", "annuity"], help='With this argument defines \n'
+                                                'if the loan pay method is differentiated or annuity ', )
+parser.add_argument('--principal', help='Enter loan principal', nargs='?')
+parser.add_argument('--periods', help='Enter number of payment periods (months)', nargs='?')
+parser.add_argument('--interest', help='This argument defines loan interest', nargs='?')
+parser.add_argument('--payment', help='Argument defining payment amount (annuity)', nargs='?')
+
+args = parser.parse_args()
+inputs = [args.type, args.interest, args.periods, args.principal, args.payment]
+
+periods = args.periods
+principal = args.principal
+payment = args.payment
+
+monthlist = []
+checklist = [payment, periods, principal]
+nonecounter = 0
+absolut_payment = []
+
+try:
+    interest = float(args.interest)
+except:
+    print('Incorrect parameters.')
+    quit()
+
+interest_rate = (interest / 100) / (12 * (100 / 100))
+
+if args.type == 'annuity':
+    # princ1; pay0; per2; <- variables in try/exept-blocks are used as switches, /n
+    # for later use in if/elif-blocks statements.
+    try:
+
+        checklist[1] = float(principal)
+        princ1 = True
+        nonecounter = nonecounter + 1
+    except:
+        princ1 = False
+        pass
+
+    try:
+        checklist[0] = float(payment)
+        pay0 = True
+        nonecounter = nonecounter + 1
+    except:
+        pay0 = False
+        pass
+
+    try:
+        checklist[2] = float(periods)
+        per2 = True
+        nonecounter = nonecounter + 1
+    except:
+        per2 = False
+        pass
+
+    if nonecounter == 2 and type(interest) is float:
+
+        if pay0 == False:
+            formula_part = math.pow((1 + interest_rate), float(periods))
+            payment = float(principal) * ((interest_rate * (formula_part)) / (formula_part - 1))
+            print(math.ceil(payment))
+        elif princ1 == False:
+            formula_part = math.pow((1 + interest_rate), float(periods))
+            principal = math.ceil(float(payment) / ((interest_rate * (formula_part)) / (formula_part - 1)))
+            print(principal)
+
+        elif per2 == False:
+
+            interest_rate = (interest / 100) / (12 * (100 / 100))
+            periods = math.ceil(math.log(float(payment) / (float(payment) - interest_rate * float(principal)) , 1 + interest_rate))
+
+            answer = abs(math.ceil(periods))
+            year = math.floor(answer / 12)
+            month = answer % 12
+
+            if year > 1:
+                year = str(year) + ' years'
+            elif year == 1:
+                year = str(year) + ' year'
+            elif year == 0:
+                year = ''
+
+            if month > 1:
+                month = ' and ' + str(month) + ' months'
+            elif month == 1:
+                month = ' and ' + str(month) + ' month'
+            elif month == 0:
+                month = ''
+                
+            msg = ('It will take ' + year + month + ' to repay this loan!')
+            Overpayment = math.ceil(math.ceil(float(payment)) * float(periods) - float(principal))
+            
+            print(msg)
+            print(Overpayment)
+
+    else:
+        print('Incorrect parameters.')
+
+elif args.type == 'diff':
+
+    periods = int(periods)
+    principal = float(principal)
+
+    for i in range(0, (periods) + 1):
+        monthlist.append(i)
+        differentiated_payment = principal / periods + (
+                interest_rate * (principal - ((principal * (monthlist[i] - 1)) / periods)))
+        absolut_payment.append(math.ceil(differentiated_payment))
+        if monthlist[i] > 0:
+            print(f'Month: {monthlist[i]} payment is: {math.ceil(differentiated_payment)}')
+
+    print('Overpayment: ', (sum(absolut_payment) - absolut_payment[0]) - principal)
+    
